@@ -18,3 +18,9 @@ config.local.json
 problems/
 problem_files/
 my_problems/
+
+# Handover & Internal notes
+HANDOVER.md
+handover.md
+*handover*
+*.handover.md
