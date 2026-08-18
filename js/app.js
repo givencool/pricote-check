@@ -310,7 +310,7 @@ class App {
 
   /* --- UI Theme & Splitter --- */
   setupTheme() {
-    const savedTheme = localStorage.getItem('pricote_theme') || localStorage.getItem('mybac_theme') || 'dark';
+    const savedTheme = localStorage.getItem('pricote_theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
     this.updateThemeIcon(savedTheme);
   }

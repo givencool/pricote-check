@@ -10,7 +10,7 @@ class JudgeClient {
    */
   static getConfig() {
     try {
-      const raw = localStorage.getItem(this.STORAGE_KEY) || localStorage.getItem('mybac_judge_config');
+      const raw = localStorage.getItem(this.STORAGE_KEY);
       if (raw) {
         return JSON.parse(raw);
       }
