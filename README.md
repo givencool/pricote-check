@@ -9,12 +9,12 @@
 
 ## 🌟 프로젝트 소개
 
-pricote는 서버 및 데이터베이스 비용 없이($0), 정적 웹 호스팅(GitHub Pages)을 통해 브라우저에서 실행되는 **C++ 알고리즘 코딩테스트 풀이 및 자체 채점 도구**입니다.
+pricote는 별도의 백엔드 웹 서버나 데이터베이스 구축 없이 정적 웹 호스팅(GitHub Pages)을 통해 브라우저에서 동작하는 **C++ 알고리즘 코딩테스트 풀이 및 자체 채점 도구**입니다.
 
-Oracle Cloud Always Free 인스턴스에 구축한 본인만의 **Piston** 채점 서버와 연동하여 C++ 코드를 실시간으로 컴파일 및 채점하며, 문제 파일 및 채점 결과는 사용자의 로컬 컴퓨터에서만 읽고 저장됩니다.
+Oracle Cloud Always Free 인스턴스 등에 구축한 본인만의 **Piston** 또는 **Judge0** 채점 서버와 연동하여 C++ 코드를 실시간으로 컴파일 및 채점하며, 문제 파일 및 채점 결과는 사용자의 로컬 환경 내에서만 처리됩니다.
 
 ### 핵심 특징
-- 🚫 **0원 정적 프론트엔드**: GitHub Pages로 호스팅되며, 프론트엔드 유지비용 $0
+- 🌐 **정적 웹 아키텍처**: 별도의 웹 서버 구축 없이 GitHub Pages를 통해 배포 및 구동되는 서버리스 정적 웹 애플리케이션
 - 🔒 **완전한 프라이버시 & 보안**: 문제 데이터는 `FileReader`로 메모리 상에서만 처리되며, 채점 서버 자격증명(URL, 토큰)은 브라우저 `localStorage`에만 저장 (Public Repo 공개 시에도 서버 주소·토큰 노출 없음)
 - ⚡ **자체 호스팅 채점 엔진 연동**: **Piston**(검증 완료) 및 **Judge0 CE**(대안) 지원, 커스텀 인증 헤더(`X-Grading-Token`, `X-Auth-Token` 등) 지원
 - 💻 **Monaco Editor 탑재**: VS Code 기반 Monaco Editor (C++ 문법 강조, 빠른 입출력 보일러플레이트, 테마 전환, `Ctrl/Cmd + Enter` 단축키)
@@ -74,7 +74,7 @@ Piston을 실제로 설치·검증한 전 과정입니다. 온라인에 흔히 �
 막혔던 지점을 그대로 반영했습니다.
 
 > [!IMPORTANT]
-> GitHub Pages는 **HTTPS**로 서빙되므로, 브라우저의 Mixed Content 차단을 방지하기 위해 채점 서버에도 **HTTPS**가 적용되어야 합니다. 무료 역방향 프록시 도구인 **Caddy**를 사용하면 Let's Encrypt 인증서가 자동으로 발급됩니다.
+> GitHub Pages는 **HTTPS**로 서빙되므로, 브라우저의 Mixed Content 차단을 방지하기 위해 채점 서버에도 **HTTPS**가 적용되어야 합니다. 역방향 프록시 도구인 **Caddy**를 사용하면 Let's Encrypt SSL/TLS 인증서가 자동으로 발급 및 갱신됩니다.
 
 ### 1. 인스턴스 준비
 
@@ -161,7 +161,7 @@ curl http://localhost:2000/api/v2/runtimes
 > echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 > ```
 
-### 5. 무료 도메인 연결 (DuckDNS)
+### 5. 도메인 연결 (DuckDNS 등)
 
 1. [duckdns.org](https://www.duckdns.org)에서 로그인 후 서브도메인 발급 (예: `yourname.duckdns.org`)
 2. IP 입력란은 기본적으로 **지금 접속한 기기의 IP가 자동 감지되어 채워지므로**,
