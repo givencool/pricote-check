@@ -3,14 +3,14 @@
  * Credentials (URL & Token) are loaded exclusively from browser localStorage.
  */
 class JudgeClient {
-  static STORAGE_KEY = 'mybac_judge_config';
+  static STORAGE_KEY = 'pricote_judge_config';
 
   /**
    * Get server config from localStorage
    */
   static getConfig() {
     try {
-      const raw = localStorage.getItem(this.STORAGE_KEY);
+      const raw = localStorage.getItem(this.STORAGE_KEY) || localStorage.getItem('mybac_judge_config');
       if (raw) {
         return JSON.parse(raw);
       }
@@ -153,7 +153,7 @@ class JudgeClient {
       version: '10.2.0',
       files: [{ name: 'main.cpp', content: code }],
       stdin: stdin,
-      run_timeout: 4000,
+      run_timeout: 3000,
       compile_timeout: 10000
     };
 

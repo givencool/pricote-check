@@ -1,5 +1,5 @@
 /**
- * MYBAC Application Main Orchestrator
+ * PRICOTE Application Main Orchestrator
  */
 class App {
   constructor() {
@@ -310,7 +310,7 @@ class App {
 
   /* --- UI Theme & Splitter --- */
   setupTheme() {
-    const savedTheme = localStorage.getItem('mybac_theme') || 'dark';
+    const savedTheme = localStorage.getItem('pricote_theme') || localStorage.getItem('mybac_theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
     this.updateThemeIcon(savedTheme);
   }
@@ -319,7 +319,7 @@ class App {
     const current = document.documentElement.getAttribute('data-theme') || 'dark';
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('mybac_theme', next);
+    localStorage.setItem('pricote_theme', next);
     this.updateThemeIcon(next);
     if (this.editor) {
       this.editor.setTheme(next === 'light' ? 'vs' : 'vs-dark');
@@ -548,11 +548,11 @@ class App {
       let statusBadge = `<span class="testcase-status status-icon-pending">● 대기 중</span>`;
       if (res) {
         if (res.status === 'PASSED') {
-          statusBadge = `<span class="testcase-status status-icon-pass">✔ 통과 (${res.timeMs}ms)</span>`;
+          statusBadge = `<span class="testcase-status status-icon-pass" title="서버 왕복 및 컴파일/실행 포함 총 소요 시간: ${res.timeMs}ms">✔ 통과 (${res.timeMs}ms)</span>`;
         } else if (res.status === 'RUNNING') {
           statusBadge = `<span class="testcase-status" style="color:var(--accent-yellow)">⏳ 채점 중...</span>`;
         } else {
-          statusBadge = `<span class="testcase-status status-icon-fail">✖ ${res.label} (${res.timeMs ? res.timeMs + 'ms' : '-'})</span>`;
+          statusBadge = `<span class="testcase-status status-icon-fail" title="${res.error ? this.escapeHtml(res.error) : res.label}">✖ ${res.label} (${res.timeMs ? res.timeMs + 'ms' : '-'})</span>`;
         }
       }
 
