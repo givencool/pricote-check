@@ -11,6 +11,8 @@
 
 **PRICOTE**는 별도의 백엔드 웹 서버나 데이터베이스 구축 없이 정적 웹 호스팅(GitHub Pages)을 통해 브라우저에서 동작하는 **C++ 알고리즘 코딩테스트 풀이 및 자체 채점 도구**입니다.
 
+> 🌐 **웹 서비스 바로가기**: [https://givencool.github.io/pricote-check/](https://givencool.github.io/pricote-check/)
+
 Oracle Cloud Always Free 인스턴스 등에 구축한 본인만의 **Piston** 또는 **Judge0** 채점 서버와 연동하여 C++ 코드를 실시간으로 컴파일 및 채점하며, 문제 파일 및 채점 결과는 사용자의 로컬 환경 내에서만 처리됩니다.
 
 ### ✨ 핵심 특징
@@ -279,19 +281,6 @@ Caddyfile은 Judge0의 기본 인증 헤더인 `X-Auth-Token`을 그대로 통�
 ### Q3. 문제의 시간 제한은 1초인데 웹앱 결과에 약 1.5 ~ 2초로 표시됩니다.
 - **원인**: 측정된 시간은 브라우저 ↔ 채점 서버 간 **네트워크 왕복 시간(RTT)** + C++ 소스코드 **g++ 컴파일 소요 시간** + **Piston 격리 샌드박스 컨테이너 초기화 오버헤드**가 모두 포함된 전체 왕복 소요 시간입니다.
 - 실제 컴파일된 바이너리의 순수 실행 시간은 수십 ms 이내이며, Piston 서버의 CPU 및 네트워크 상태에 따라 전체 왕복 시간이 1~2초 내외로 측정될 수 있습니다.
-
----
-
-## 🌐 GitHub Pages 배포 방법
-
-이 프로젝트는 순수 정적 파일(HTML/CSS/JS)로만 구성되어 있어 GitHub Pages로 즉시 배포할 수 있습니다.
-
-1. 이 저장소를 본인의 GitHub 계정으로 푸시(Push)합니다.
-2. 저장소의 **Settings** 탭으로 이동합니다.
-3. 좌측 메뉴에서 **Pages**를 선택합니다.
-4. **Build and deployment** 항목의 **Source**를 `GitHub Actions`로 설정합니다.
-   - 레포지토리에 포함된 `.github/workflows/deploy.yml` 워크플로우에 의해 자동으로 배포가 완료됩니다.
-5. 배포된 URL (`https://<username>.github.io/pricote/`)로 접속하여 사용합니다.
 
 ---
 
