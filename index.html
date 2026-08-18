@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MYBAC - 자체 호스팅 채점기 연동 C++ 코딩테스트 플랫폼</title>
+  
+  <!-- Fonts -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/main.css">
+
+  <!-- External Libraries via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-logo" onclick="location.reload()">
+        <span>MYBAC</span>
+        <span class="brand-badge">C++ Judge</span>
+      </div>
+
+      <!-- Server Status Badge & Quick Settings -->
+      <div id="server-status-pill" class="server-status-pill server-status-unconfigured" title="채점 서버 설정 열기">
+        <span id="server-status-dot">●</span>
+        <span id="server-status-text" class="status-text">서버 미설정</span>
+      </div>
+
+      <!-- Problem Select Dropdown (for multiple loaded files) -->
+      <div class="problem-select-wrapper" id="problem-select-wrapper" style="display: none;">
+        <select id="problem-select" class="problem-select"></select>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Hidden File Input -->
+      <input type="file" id="file-input" multiple accept=".md,.txt" style="display: none;" />
+
+      <!-- Load Buttons -->
+      <button id="btn-load-file" class="btn" title="로컬의 .md 문제 파일을 불러옵니다">
+        <span>📂</span>
+        <span class="btn-text">문제 불러오기</span>
+      </button>
+
+      <button id="btn-sample-problem" class="btn" title="A+B 예시 문제를 바로 로드합니다">
+        <span>⚡</span>
+        <span class="btn-text">예제 로드</span>
+      </button>
+
+      <button id="btn-download-template" class="btn btn-icon-only" title="문제 작성용 md 템플릿 다운로드">
+        <span>📝</span>
+      </button>
+
+      <!-- Font Controls -->
+      <button id="btn-font-decrease" class="btn btn-icon-only" title="글자 크기 축소">A-</button>
+      <button id="btn-font-increase" class="btn btn-icon-only" title="글자 크기 확대">A+</button>
+
+      <!-- Dark/Light Theme -->
+      <button id="btn-theme-toggle" class="btn btn-icon-only" title="테마 전환">
+        <span id="theme-icon">☀️</span>
+      </button>
+
+      <!-- Settings Button -->
+      <button id="btn-open-settings" class="btn btn-icon-only" title="채점 서버 설정 (URL, 접근 토큰)">
+        <span>⚙️</span>
+      </button>
+
+      <!-- Run & Grade -->
+      <button id="btn-run-code" class="btn btn-primary" title="C++ 코드 컴파일 및 채점 (단축키: Ctrl/Cmd + Enter)">
+        <span>▶</span>
+        <span class="btn-text">채점 실행</span>
+      </button>
+
+      <!-- Export Result -->
+      <button id="btn-export-result" class="btn btn-success" disabled title="채점 결과 및 제출 코드를 로컬 md 파일로 내보냅니다">
+        <span>💾</span>
+        <span class="btn-text">결과 내보내기</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile / iPad Responsive Tab Bar -->
+  <nav class="mobile-tabs">
+    <button id="tab-problem" class="tab-btn active">
+      <span>📄</span>
+      <span>문제 설명</span>
+    </button>
+    <button id="tab-editor" class="tab-btn">
+      <span>💻</span>
+      <span>코드 & 채점</span>
+    </button>
+  </nav>
+
+  <!-- Main Workspace -->
+  <main class="workspace-container">
+
+    <!-- Left Panel: Problem Viewer -->
+    <section id="problem-panel" class="problem-panel active-tab-content">
+
+      <!-- Empty State (Shown before problem is loaded) -->
+      <div id="empty-state" class="empty-state">
+        <div id="dropzone" class="dropzone-box">
+          <div class="dropzone-icon">📥</div>
+          <h3>문제 Markdown 파일을 불러오세요</h3>
+          <p>여기를 클릭하거나 .md 파일을 드래그하여 놓으세요.<br/>(여러 파일을 한 번에 선택할 수 있습니다)</p>
+          <button class="btn btn-primary" style="margin-top: 8px;">내 PC에서 파일 선택</button>
+        </div>
+        <div class="empty-disclaimer">
+          🔒 <strong>안내</strong>: 본 앱은 서버나 DB에 문제 데이터를 일체 저장하지 않으며, 로컬 기기의 파일에서 브라우저 메모리로만 안전하게 불러와 실행합니다.
+        </div>
+      </div>
+
+      <!-- Problem Content (Rendered dynamically) -->
+      <div id="problem-content" style="display: none;">
+        <div class="problem-header">
+          <div class="problem-title-row">
+            <span id="problem-id" class="problem-id-badge">#1000</span>
+            <h1 id="problem-title" class="problem-title">A+B</h1>
+            <span id="problem-difficulty" class="difficulty-badge tier-bronze">Bronze V</span>
+          </div>
+          <div class="problem-meta-grid">
+            <div class="meta-item">
+              <strong>시간 제한:</strong>
+              <span id="problem-time-limit">1초</span>
+            </div>
+            <div class="meta-item">
+              <strong>메모리 제한:</strong>
+              <span id="problem-memory-limit">256MB</span>
+            </div>
+          </div>
+          <div id="problem-tags" class="problem-tags"></div>
+        </div>
+
+        <!-- Markdown Body -->
+        <article id="problem-body" class="problem-body"></article>
+
+        <!-- Examples Section -->
+        <div id="problem-examples-container"></div>
+      </div>
+    </section>
+
+    <!-- Right Panel: Monaco Editor & Grader Console -->
+    <section id="editor-panel" class="editor-panel">
+      <!-- Editor Top Toolbar -->
+      <div class="editor-toolbar">
+        <div class="toolbar-left">
+          <span class="editor-title">
+            <span>⚙️</span>
+            <span>main.cpp (C++20 / g++)</span>
+          </span>
+        </div>
+        <div class="toolbar-right">
+          <button id="btn-reset-code" class="btn btn-sm" title="기본 C++ 보일러플레이트로 리셋">초기화</button>
+        </div>
+      </div>
+
+      <!-- Monaco Editor Mount Point -->
+      <div class="editor-container">
+        <div id="monaco-editor"></div>
+      </div>
+
+      <!-- Resizable Handle -->
+      <div id="resize-handle" class="resize-handle"></div>
+
+      <!-- Bottom Results & Console Panel -->
+      <div id="results-panel" class="results-panel">
+        <div class="results-header">
+          <div class="results-tabs">
+            <button id="tab-btn-testcases" class="result-tab-btn active">예제 채점 결과</button>
+            <button id="tab-btn-custom" class="result-tab-btn">임의 입력 테스트</button>
+            <button id="tab-btn-error" class="result-tab-btn">컴파일/에러 로그</button>
+          </div>
+          <div id="overall-verdict-badge" class="verdict-badge verdict-idle">채점 대기</div>
+        </div>
+
+        <div class="results-body">
+          <!-- View 1: Testcases Result -->
+          <div id="view-testcases">
+            <div id="server-unconfigured-notice" class="server-notice-box" style="display: none; margin-bottom: 12px;">
+              <div style="font-size: 1.5rem;">⚙️</div>
+              <div style="flex: 1;">
+                <h4>채점 서버 설정 필요</h4>
+                <p>C++ 코드 컴파일 및 채점을 위해 자체 호스팅된 Judge0 CE 또는 Piston 서버 URL을 등록해주세요. (모든 자격증명은 로컬 브라우저에만 안전하게 보관됩니다)</p>
+                <button id="btn-notice-open-settings" class="btn btn-sm btn-primary">서버 설정 열기</button>
+              </div>
+            </div>
+
+            <div id="testcase-list" class="testcase-list">
+              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 12px 0;">
+                문제를 불러온 후 상단의 <strong>[채점 실행]</strong> 버튼을 누르면 예제 테스트케이스가 채점됩니다.
+              </div>
+            </div>
+          </div>
+
+          <!-- View 2: Custom Input Tester -->
+          <div id="view-custom" class="custom-test-view" style="display: none;">
+            <div style="display: flex; gap: 10px; flex: 1;">
+              <div style="flex: 1; display: flex; flex-direction: column;">
+                <label style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">입력 (stdin):</label>
+                <textarea id="custom-input" class="custom-textarea" placeholder="임의의 입력값을 입력하세요..."></textarea>
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column;">
+                <label style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">실행 결과 (stdout / stderr):</label>
+                <textarea id="custom-output" class="custom-textarea" readonly placeholder="실행 결과가 여기에 표시됩니다..."></textarea>
+              </div>
+            </div>
+            <div style="text-align: right; margin-top: 4px;">
+              <button id="btn-run-custom" class="btn btn-sm btn-primary">임의 입력으로 실행</button>
+            </div>
+          </div>
+
+          <!-- View 3: Compile / Error Logs -->
+          <div id="view-error" style="display: none;">
+            <div id="error-log-content" class="error-log-box">컴파일 에러가 발생하면 상세 로그가 여기에 표시됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings Modal Dialog -->
+  <div id="settings-modal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>⚙️</span>
+          <span>채점 서버 설정</span>
+        </h3>
+        <button id="btn-close-settings" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert-box alert-info">
+          🔒 <strong>보안 안내</strong>: 입력하신 서버 URL과 토큰은 레포지토리나 외부 서버로 전송되지 않으며, 오직 <strong>본인 브라우저의 localStorage</strong>에만 보관됩니다.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">채점 엔진 종류</label>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="server-type" value="judge0" checked />
+              <span>Judge0 CE (권장)</span>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="server-type" value="piston" />
+              <span>Piston API</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-server-url">서버 URL (HTTPS 필수)</label>
+          <input type="url" id="input-server-url" class="form-control" placeholder="https://judge.your-domain.com" />
+          <span class="form-hint">Oracle Cloud 인스턴스에 구축한 채점 서버의 도메인/HTTPS URL</span>
+          
+          <div id="mixed-content-warning" class="alert-box alert-warning" style="display: none; margin-top: 6px;">
+            ⚠️ <strong>HTTPS 권장</strong>: GitHub Pages(HTTPS)에서 `http://` 주소를 호출하면 브라우저 보안 정책(Mixed Content)으로 차단됩니다. Caddy/Nginx 등으로 SSL/HTTPS를 적용해주세요.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-server-token">접근 토큰 / API Key (선택)</label>
+          <input type="password" id="input-server-token" class="form-control" placeholder="자체 서버 접근 인증 토큰" />
+          <span class="form-hint">서버 보호를 위해 설정한 커스텀 인증 토큰 (없으면 빈칸)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-header-name">인증 헤더 이름</label>
+          <input type="text" id="input-header-name" class="form-control" value="X-Auth-Token" placeholder="X-Auth-Token 또는 X-Grading-Token" />
+          <span class="form-hint">요청 시 토큰을 실어보낼 HTTP 헤더 이름 (기본: Judge0는 X-Auth-Token, Piston은 X-Grading-Token)</span>
+        </div>
+
+        <div>
+          <button id="btn-test-connection" class="btn btn-sm">📡 연결 테스트 (Ping)</button>
+          <div id="test-connection-result" class="test-connection-result" style="margin-top: 8px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-settings" class="btn">취소</button>
+        <button id="btn-save-settings" class="btn btn-primary">저장하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Mount -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/parser.js"></script>
+  <script src="js/judge-client.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

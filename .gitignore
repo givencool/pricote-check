@@ -1,0 +1,20 @@
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+node_modules/
+dist/
+
+# Results & Local files
+result_*.md
+*.local.json
+config.local.json
+.env
+*.env
+.env.*
+
+# Local problem files (never commit external problem content)
+problems/
+problem_files/
+my_problems/
