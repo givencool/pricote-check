@@ -16,6 +16,7 @@ class App {
     this.setupTheme();
     this.setupSplitter();
     this.refreshServerStatus();
+    this.checkAndLoadLocalProblems();
   }
 
   initDOM() {
@@ -364,6 +365,45 @@ class App {
   }
 
   /* --- Problem Loading & Rendering --- */
+  async checkAndLoadLocalProblems(silent = true) {
+    try {
+      const res = await fetch('/api/problems');
+      if (!res.ok) return; // Not running local server
+      
+      const fileList = await res.json();
+      if (!Array.isArray(fileList) || fileList.length === 0) return;
+
+      const loadedList = [];
+      for (const item of fileList) {
+        try {
+          const detailRes = await fetch(`/api/problem?file=${encodeURIComponent(item.relativePath)}`);
+          if (!detailRes.ok) continue;
+          const data = await detailRes.json();
+          const parsed = ProblemParser.parse(data.content);
+          loadedList.push({
+            filename: item.filename,
+            category: item.category,
+            relativePath: item.relativePath,
+            data: parsed
+          });
+        } catch (err) {
+          console.warn(`[Local Server] 문제 로드 실패 (${item.relativePath}):`, err);
+        }
+      }
+
+      if (loadedList.length > 0) {
+        this.problems = loadedList;
+        this.updateProblemDropdown();
+        this.switchProblem(0);
+        if (!silent) {
+          this.showToast(`로컬 폴더에서 ${loadedList.length}개의 문제를 불러왔습니다.`, 'success');
+        }
+      }
+    } catch (e) {
+      // Quietly ignore if not running local runner (e.g. GitHub Pages)
+    }
+  }
+
   async handleFileSelect(fileList) {
     if (!fileList || fileList.length === 0) return;
 

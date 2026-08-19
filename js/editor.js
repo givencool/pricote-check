@@ -51,7 +51,7 @@ int main() {
             language: 'cpp',
             theme: this.options.theme,
             fontSize: this.options.fontSize,
-            fontFamily: "'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace",
+            fontFamily: "'SF Mono', 'JetBrains Mono', Menlo, Monaco, Consolas, monospace",
             fontLigatures: true,
             tabSize: 4,
             insertSpaces: true,
